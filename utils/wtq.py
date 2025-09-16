@@ -9,7 +9,6 @@ data without custom extraction or file handling.
 from __future__ import annotations
 
 import os
-import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -17,18 +16,30 @@ import requests
 
 
 def _download_wtq_zip() -> Path:
-    """Download the WTQ compact zip to a temporary directory and return its path."""
+    """Download the WTQ compact zip into ./setup/ and return its path.
+
+    If the file already exists in ./setup/, no download occurs.
+    """
     data_url = (
         "https://github.com/ppasupat/WikiTableQuestions/releases/download/"
         "v1.0.2/WikiTableQuestions-1.0.2-compact.zip"
     )
 
-    temp_dir = Path(tempfile.mkdtemp())
-    zip_file_path = temp_dir / "WikiTableQuestions-1.0.2-compact.zip"
+    project_root = Path(__file__).resolve().parent.parent  # utils/ -> project root
+    setup_dir = project_root / "setup"
+    setup_dir.mkdir(exist_ok=True)
+    zip_file_path = setup_dir / "WikiTableQuestions-1.0.2-compact.zip"
 
-    resp = requests.get(data_url)
-    resp.raise_for_status()
-    zip_file_path.write_bytes(resp.content)
+    if zip_file_path.exists():
+        return zip_file_path
+
+    # Stream to file to avoid holding the entire zip in memory
+    with requests.get(data_url, stream=True) as resp:
+        resp.raise_for_status()
+        with open(zip_file_path, "wb") as f:
+            for chunk in resp.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f.write(chunk)
     return zip_file_path
 
 
@@ -57,10 +68,8 @@ def ensure_wtq_data(zip_file_path: Optional[Path] = None, cache_dir: Optional[Pa
         return existing_data_dir
 
     # Ensure a zip exists (download if missing)
-    temp_download: Optional[Path] = None
     if not Path(zip_file_path).exists():
-        temp_download = _download_wtq_zip()
-        zip_file_path = temp_download
+        zip_file_path = _download_wtq_zip()
 
     # Extract the zip file to .cache
     import zipfile
@@ -69,15 +78,6 @@ def ensure_wtq_data(zip_file_path: Optional[Path] = None, cache_dir: Optional[Pa
         zip_ref.extractall(cache_dir)
 
     data_dir = cache_dir / "WikiTableQuestions" / "data"
-
-    # Cleanup temp download
-    if temp_download:
-        try:
-            tmp_dir = temp_download.parent
-            temp_download.unlink(missing_ok=True)
-            tmp_dir.rmdir()
-        except Exception:
-            pass
 
     return data_dir
 
