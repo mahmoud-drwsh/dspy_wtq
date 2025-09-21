@@ -1,3 +1,4 @@
-.vevn
-.cache
+.venv/
+.cache/
 *.log
+.claude/

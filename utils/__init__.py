@@ -8,7 +8,7 @@ from .io_utils import (
 )
 from .table_utils import human_table_preview, serialize_table_for_prompt
 from .eval_utils import denotation_accuracy, normalize_token, split_prediction
-from .dspy_utils import build_module, configure_dspy, ping_ollama
+from .dspy_utils import build_module, configure_dspy, configure_dspy_openrouter, configure_dspy_lm_studio, print_token_usage, ping_ollama
 
 __all__ = [
     # WTQ utilities
@@ -29,5 +29,8 @@ __all__ = [
     # DSPy utilities
     "build_module",
     "configure_dspy",
+    "configure_dspy_openrouter",
+    "configure_dspy_lm_studio",
+    "print_token_usage",
     "ping_ollama",
 ]

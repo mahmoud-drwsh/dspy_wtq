@@ -43,6 +43,95 @@ def configure_dspy(
     return dspy
 
 
+def configure_dspy_lm_studio(
+    model_name: str = "deepseek/deepseek-r1-0528-qwen3-8b",
+    api_base: str = "http://localhost:1234/v1",
+    api_key: str = "local",
+    temperature: float = 0.1,
+    max_tokens: int = 1024,
+    track_usage: bool = False,
+):
+    """
+    Configure DSPy with LM Studio model settings.
+    
+    Args:
+        model_name: The model to use (default: DeepSeek R1)
+        api_base: LM Studio API base URL (default: localhost:1234)
+        api_key: API key for authentication (default: "local")
+        temperature: Sampling temperature
+        max_tokens: Maximum tokens for generation
+        track_usage: Whether to track token usage (can cause errors)
+    
+    Returns:
+        The configured language model
+    """
+    # Configure the language model
+    lm = dspy.LM(
+        model_name,
+        api_base=api_base,
+        api_key=api_key,
+        model_type="chat",
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+    dspy.configure(lm=lm)
+    
+    # Configure usage tracking and cache
+    dspy.settings.configure(track_usage=track_usage)
+    dspy.configure_cache(enable_disk_cache=False, enable_memory_cache=False)
+    
+    print(f"✅ DSPy configured with LM Studio model: {model_name} at {api_base}")
+    return lm
+
+
+def configure_dspy_openrouter(
+    model_name: str = "openrouter/deepseek/deepseek-r1-0528-qwen3-8b",
+    max_tokens: int = 1024,
+    context_length: int = 131072,
+    track_usage: bool = False,
+):
+    """
+    Configure DSPy with OpenRouter model settings.
+    
+    Args:
+        model_name: The model to use (default: DeepSeek R1 via OpenRouter)
+        max_tokens: Maximum tokens for generation
+        context_length: Context window size
+        track_usage: Whether to track token usage (can cause errors)
+    
+    Returns:
+        The configured language model
+    """
+    # Configure the language model
+    lm = dspy.LM(model_name, max_tokens=max_tokens, context_length=context_length, cache=False)
+    dspy.configure(lm=lm)
+    
+    # Configure usage tracking and cache
+    dspy.settings.configure(track_usage=track_usage)
+    dspy.configure_cache(enable_disk_cache=False, enable_memory_cache=False)
+    
+    print(f"✅ DSPy configured with model: {model_name}")
+    return lm
+
+
+def print_token_usage(result):
+    """Print token usage statistics from a DSPy result."""
+    print("\nToken Usage Statistics:")
+    try:
+        usage_stats = result.get_lm_usage()
+        if usage_stats:
+            for model_name, stats in usage_stats.items():
+                print(f"Model: {model_name}")
+                print(f"Input tokens: {stats.get('prompt_tokens', 'N/A')}")
+                print(f"Output tokens: {stats.get('completion_tokens', 'N/A')}")
+                print(f"Total tokens: {stats.get('total_tokens', 'N/A')}")
+                print(f"API calls: {stats.get('calls', 'N/A')}")
+        else:
+            print("No usage statistics available (tracking disabled)")
+    except Exception as e:
+        print(f"Usage tracking error: {e}")
+
+
 def build_module(dspy, use_cot: bool = True):
     """Build a DSPy module (ChainOfThought or Predict)."""
     signature = "table_text, question -> answer"
