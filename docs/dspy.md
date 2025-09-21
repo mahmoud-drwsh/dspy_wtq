@@ -1,126 +1,419 @@
-# DSPy.ai — a detailed, academic overview
+# DSPy.ai — Complete & Detailed Usage Guide (v3.0.x)
 
-## What it is (and why it exists)
-
-**DSPy** (Declarative Self-improving Python) is a framework for *programming* language-model (LM) systems instead of hand-prompting them. You write modular Python code with clear interfaces; a **compiler/optimizer** then searches for prompts (and optionally weights) that maximize a metric you choose. This replaces brittle, trial-and-error prompt templates with reproducible pipelines whose prompts/examples are *learned* from data and evaluation signals. ([arXiv][1])
-
-DSPy abstracts LM pipelines as **text-transformation graphs**—imperative programs whose LM calls are made through **declarative modules**. These modules are *parameterized*: their “parameters” are the instructions and few-shot demonstrations (and, for small LMs, weights) that the compiler learns to optimize. Empirically, small DSPy programs can be compiled to outperform expert few-shot prompts and even compete with larger proprietary systems on several tasks. ([arXiv][1])
+> **Latest stable**: `dspy==3.0.3` (released Aug 31, 2025). Requires Python 3.10–3.13. ([PyPI][1])
 
 ---
 
-## Core abstractions
+## Table of Contents
 
-### 1) Signatures
+* [What is DSPy?](#what-is-dspy)
+* [Install & Upgrade](#install--upgrade)
+* [Hello, DSPy (Quickstart)](#hello-dspy-quickstart)
+* [Core Concepts](#core-concepts)
 
-A **Signature** is a declarative specification of I/O behavior, e.g. `"question -> answer"` or a class with typed fields. You tell the LM *what* you need (semantic roles), not *how* to ask. Signatures support rich types (lists, dicts, `Literal`, multimodal like `dspy.Image`) and can carry constraints/hints. ([dspy.ai][2])
-
-### 2) Modules
-
-A **Module** implements a prompting technique (e.g., `Predict`, `ChainOfThought`, `ReAct`) against any Signature. Modules are composable and have learnable parameters (instructions/demos, optionally weights). You build larger programs by wiring modules together in ordinary Python control flow. ([dspy.ai][3])
-
-### 3) Types & Adapters (DSPy 3.0+)
-
-DSPy 3.0 generalizes I/O via **Adapters** (`ChatAdapter`, `JSONAdapter`, `XMLAdapter`) and **Types** (`dspy.Type`), supporting structured outputs, function calls, multimodal `Image/Audio`, conversation `History`, and `ToolCalls`. This improves portability, streaming, async, and deployment. ([GitHub][4])
-
----
-
-## Compiling programs (optimizers, formerly “teleprompters”)
-
-A **DSPy optimizer** takes: (i) your program (single or multi-module), (ii) a **metric** (boolean or numeric), and (iii) a small **train/dev set** (even 5–10 examples can help). It then searches prompt instructions and few-shot demos—and can also finetune weights—so as to maximize your metric. The project now uses “optimizers” (formerly “teleprompters”). ([dspy.ai][5])
-
-**Main families** (non-exhaustive):
-
-* **Automatic few-shot**: `LabeledFewShot`, `BootstrapFewShot`, `BootstrapFewShotWithRandomSearch`, `KNNFewShot`. These curate demos per module. ([dspy.ai][5])
-* **Instruction (and joint) optimization**:
-
-  * **MIPROv2**: jointly proposes instructions and demos using a bootstrapping phase followed by **Bayesian optimization** over instruction/demo combinations (mini-batched search; light/medium/heavy modes). Works also in zero-shot (instruction-only) mode. ([dspy.ai][6])
-  * **COPRO**, **SIMBA**, **GEPA**: reflective/evolutionary or coordinate-ascent style prompt improvement; GEPA targets Pareto-efficient, shorter prompts. ([dspy.ai][5])
-* **Finetuning**: `BootstrapFinetune` distills a prompt-optimized program into *weights* for smaller/cheaper models; `BetterTogether` composes prompt+finetune steps. ([dspy.ai][5])
-* **RL (3.0)**: `dspy.GRPO` integrates with Arbor for reinforcement-learning over compound programs; useful for long-horizon/agentic tasks. ([GitHub][4])
-
-**Why this matters**: DSPy moves compute **before inference** (during compilation), letting you amortize exploration over a train/dev set and ship *fixed* prompts/weights for stable runtime behavior. It’s reproducible (save/load programs), testable, and compatible with open/proprietary LMs. ([dspy.ai][5])
+  * [Language Models (LMs)](#language-models-lms)
+  * [Signatures](#signatures)
+  * [Modules](#modules)
+  * [Adapters & Types (3.0)](#adapters--types-30)
+* [Programming Patterns](#programming-patterns)
+* [Evaluation & Metrics](#evaluation--metrics)
+* [Optimization (formerly “Teleprompters”)](#optimization-formerly-teleprompters)
+* [Retrieval-Augmented Generation (RAG)](#retrieval-augmented-generation-rag)
+* [Agents with Tools (ReAct)](#agents-with-tools-react)
+* [Streaming, Async & Concurrency](#streaming-async--concurrency)
+* [Caching & Cost Control](#caching--cost-control)
+* [Saving, Loading & Deployment](#saving-loading--deployment)
+* [Observability & MLflow](#observability--mlflow)
+* [Best Practices & Gotchas](#best-practices--gotchas)
+* [Cheatsheet & Further Reading](#cheatsheet--further-reading)
 
 ---
 
-## Typical workflow
+## What is DSPy?
 
-1. **Declare** a Signature and choose Modules.
-2. **Define a metric** (e.g., exact-match, semantic F1, or an LM-as-judge module).
-3. **Compile** with an optimizer (MIPROv2 or BootstrapFewShot…), passing a small train/dev split.
-4. **Save** the optimized program; **evaluate** and iterate; optionally **finetune** for small LMs. ([dspy.ai][7])
+**DSPy** is a **declarative framework** for building modular AI software. You write structured Python (not brittle prompt strings), and DSPy compiles your programs into effective prompts and/or fine-tuned weights. It scales from simple classifiers to sophisticated **RAG** pipelines and **agent** loops. ([Medium][2])
 
-### Minimal example (sketch)
+**DSPy 3.0 Highlights** (Aug 2025):
+
+* New optimizers: **GRPO** (via Arbor), **GEPA**, **SIMBA**.
+* Extensibility: **Adapters** (`ChatAdapter`, `JSONAdapter`, `TwoStepAdapter`) & **Types** (`Image`, `Audio`, Pydantic models, `ToolCalls`).
+* Production: native **MLflow 3.0** integration; better async, caching, and save/load stability. ([GitHub][3])
+
+---
+
+## Install & Upgrade
+
+```bash
+pip install -U dspy
+# Optional extras:
+# pip install -U "dspy[anthropic]" "dspy[weaviate]" "dspy[langchain]" "dspy[mcp]"
+```
+
+* Verify the **latest** version and Python constraints on PyPI. ([PyPI][1])
+
+---
+
+## Hello, DSPy (Quickstart)
 
 ```python
 import dspy
-from dspy.teleprompt import MIPROv2
-from dspy.evaluate import Evaluate
 
-dspy.configure(lm=dspy.LM("openai/gpt-4o-mini"))  # any provider/open model
+# 1) Pick a model provider & configure
+lm = dspy.LM("openai/gpt-4o-mini")   # or anthropic/..., gemini/..., azure/..., ollama_chat/...
+dspy.configure(lm=lm)
 
-# 1) Program
-sig = dspy.Signature("question -> answer")
-qa = dspy.ChainOfThought(sig)  # or dspy.Predict, dspy.ReAct, etc.
-
-# 2) Metric and data
-def em(gold, pred, trace=None): return (gold.answer.strip() == pred.answer.strip())
-train, dev = small_trainset, small_devset  # a few dozen examples is fine
-
-# 3) Compile (optimize instructions + demos)
-tp = MIPROv2(metric=em, auto="light")
-qa_opt = tp.compile(qa, trainset=train)
-
-# 4) Evaluate + save
-Evaluate(devset=dev, metric=em)(qa_opt)
-qa_opt.save("qa_opt.json")
+# 2) Define a task with a Signature, then use a Module
+summarize = dspy.ChainOfThought("document -> summary")
+out = summarize(document="DSPy lets you build AI with code, not brittle prompts.")
+print(out.summary)
+print(out.reasoning)   # ChainOfThought adds reasoning
 ```
 
-(Interface and examples reflect the official docs; see Optimizers and Cheatsheet for variants.) ([dspy.ai][5])
+* `dspy.configure(lm=...)` sets your default LM. Works across OpenAI, Gemini, Anthropic, Databricks, local backends (SGLang, Ollama), and OpenAI-compatible endpoints. ([DSPy][4])
+* `dspy.ChainOfThought` augments your signature with a `reasoning` field. ([DSPy][5])
 
 ---
 
-## Capabilities & example gains
+## Core Concepts
 
-* **RAG & multi-hop question answering** (`ReAct`, custom tools/ColBERT search). DSPy tutorials show sizable gains after optimization; an example ReAct run on HotPotQA improved **EM from \~24% to \~51%** with MIPROv2 (light mode) on 500 examples. ([dspy.ai][5])
-* **Classification, extraction, summarization**: typed Signatures enable constrained outputs and multi-field predictions; optimizers curate demos or instructions per module. ([dspy.ai][2])
-* **Agents & tool use**: `ReAct`, `ProgramOfThought`, `PythonInterpreter`, `Tool` abstractions for function/tool calling and code-as-reasoning. ([dspy.ai][3])
+### Language Models (LMs)
 
-**Peer-reviewed evidence**: The foundational paper reports that short DSPy programs, after compilation, outperformed standard few-shot prompts by **25–65%** and expert-demo pipelines by **5–46%** in case studies (math reasoning, multi-hop retrieval, agents). ([arXiv][1])
+Configure once; swap freely without changing your program.
+
+```python
+import dspy
+
+# OpenAI
+dspy.configure(lm=dspy.LM("openai/gpt-4o-mini", api_key="..."))
+
+# Gemini (Google AI Studio)
+dspy.configure(lm=dspy.LM("gemini/gemini-2.5-pro-preview-03-25", api_key="..."))
+
+# Anthropic
+dspy.configure(lm=dspy.LM("anthropic/claude-3-opus-20240229", api_key="..."))
+
+# Databricks
+dspy.configure(lm=dspy.LM("databricks/databricks-meta-llama-3-1-70b-instruct"))
+
+# Local via SGLang (OpenAI-compatible)
+lm = dspy.LM(
+    "openai/meta-llama/Meta-Llama-3-8B-Instruct",
+    api_base="http://localhost:7501/v1", api_key="", model_type="chat"
+)
+dspy.configure(lm=lm)
+
+# Local via Ollama
+dspy.configure(lm=dspy.LM("ollama_chat/llama3.2", api_base="http://localhost:11434", api_key=""))
+```
+
+Examples and provider notes are in **Language Models**. ([DSPy][4])
+
+**Generation controls & cache flag**:
+
+```python
+gpt4o = dspy.LM("openai/gpt-4o-mini", temperature=0.7, max_tokens=2048, cache=False)
+dspy.configure(lm=gpt4o)
+```
+
+By default DSPy caches LM calls; set `cache=False` to bypass. ([DSPy][6])
+
+**Advanced caching control**: `rollout_id` differentiates otherwise identical cached calls. ([DSPy][7])
 
 ---
 
-## Production, observability, and version notes
+### Signatures
 
-* **DSPy 3.0 (Aug 2025)** emphasizes extensibility (Adapters/Types), new optimizers (GEPA, SIMBA, RL-based GRPO), and **MLflow 3.0 integration** for tracing/observability, along with better async/streaming and portability (stable save/load). ([GitHub][4])
-* **Caching, streaming, async** and usage tracking are built-in; programs can be serialized and reloaded across environments. ([dspy.ai][7])
-* **Roadmap context**: MIPROv2 (prompt optimization) and BetterTogether (finetuning) landed mid-2024; documentation warns the old roadmap page is dated but records the sequence of releases. ([dspy.ai][8])
+A **Signature** declaratively specifies **inputs → outputs**. Use inline strings or class-based types.
+
+```python
+# Inline
+classify = dspy.Predict("sentence -> sentiment: bool")
+print(classify(sentence="I loved it").sentiment)
+
+# Class-based with typing & docs
+from typing import Literal
+class Emotion(dspy.Signature):
+    """Classify emotion."""
+    sentence: str = dspy.InputField()
+    sentiment: Literal["sadness","joy","love","anger","fear","surprise"] = dspy.OutputField()
+
+predict = dspy.Predict(Emotion)
+print(predict(sentence="this is amazing").sentiment)
+```
+
+Why signatures? They keep code modular and enable DSPy to optimize prompts/weights later. ([DSPy][8])
 
 ---
 
-## When to use DSPy (and when not to)
+### Modules
 
-**Use DSPy** when you:
+**Modules** are building blocks implementing prompting strategies against a signature:
 
-* Need multi-stage pipelines (RAG, agents, structured extraction) with **clear metrics** and desire *reproducible* prompt quality.
-* Want to **amortize** exploration (compile once, run stably), or **port** optimized programs across LMs via Adapters/Types. ([dspy.ai][3])
+* `dspy.Predict` – basic predictor.
+* `dspy.ChainOfThought` – step-by-step reasoning; adds `reasoning`.
+* `dspy.ProgramOfThought` – code-first reasoning.
+* `dspy.ReAct` – tool-using agent for the given signature.
+* `dspy.MultiChainComparison` – compare multiple CoT outputs.
+* `dspy.majority` / `BestOfN` – simple voting/selection utilities. ([DSPy][5])
 
-**Be cautious** if:
+Example:
 
-* You lack any usable evaluation signal/metric (optimizers need a score to climb), or your **LM budget is extremely tight** (optimization expends some calls), or your task/data drift quickly with no way to re-compile. The docs recommend small initial runs (“light” mode) and iterative refinement. ([dspy.ai][5])
+```python
+qa = dspy.ChainOfThought("question -> answer", n=5)  # multiple candidates
+resp = qa(question="Why is ColBERT notable?")
+print(resp.answer)
+print(resp.completions.answer)  # all candidates
+```
+
+See **Modules** for composition patterns and more examples. ([DSPy][5])
 
 ---
 
-## Further reading & docs
+### Adapters & Types (3.0)
 
-* **Docs**: Signatures, Modules, Optimizers (incl. MIPROv2) and tutorials. ([dspy.ai][2])
-* **Repo & papers**: overview and recent research (GEPA, “Prompts as auto-optimized hyperparameters,” “Better Together”). ([GitHub][9])
+**Adapters** control how DSPy formats & parses messages to/from LMs:
 
-[1]: https://arxiv.org/abs/2310.03714 "[2310.03714] DSPy: Compiling Declarative Language Model Calls into Self-Improving Pipelines"
-[2]: https://dspy.ai/learn/programming/signatures/ "Signatures - DSPy"
-[3]: https://dspy.ai/learn/programming/modules/ "Modules - DSPy"
-[4]: https://github.com/stanfordnlp/dspy/releases "Releases · stanfordnlp/dspy · GitHub"
-[5]: https://dspy.ai/learn/optimization/optimizers/ "Optimizers - DSPy"
-[6]: https://dspy.ai/api/optimizers/MIPROv2/ "MIPROv2 - DSPy"
-[7]: https://dspy.ai/cheatsheet/ "Cheatsheet - DSPy"
-[8]: https://dspy.ai/roadmap/ "Roadmap - DSPy"
-[9]: https://github.com/stanfordnlp/dspy "GitHub - stanfordnlp/dspy: DSPy: The framework for programming—not prompting—language models"
+* Default: `ChatAdapter` (field-marked messages).
+* `JSONAdapter` for structured JSON I/O (great with Pydantic types).
+* `TwoStepAdapter` and other advanced flows.
+  Configure globally or per-context:
+
+```python
+import dspy, pydantic
+
+dspy.configure(lm=dspy.LM("openai/gpt-4o-mini"), adapter=dspy.ChatAdapter())
+
+class Item(pydantic.BaseModel):
+    sku: str
+    price: float
+
+catalog = dspy.Predict("query -> results: list[Item]")  # Typed outputs!
+print(catalog(query="bestsellers").results)
+```
+
+Adapters, typed I/O (`Image`, `Audio`, Pydantic models) and tool-call types are part of 3.0’s extensibility. ([DSPy][9])
+
+---
+
+## Programming Patterns
+
+### Compose Programs
+
+Compose multiple modules like regular Python; DSPy traces calls at compile-time.
+
+```python
+class SearchThenAnswer(dspy.Module):
+    def __init__(self):
+        super().__init__()
+        self.search = dspy.Predict("query -> passages: list[str]")
+        self.answer = dspy.ChainOfThought("context: list[str], question -> answer")
+
+    def forward(self, question: str):
+        ctx = self.search(query=question).passages
+        return self.answer(context=ctx, question=question)
+
+app = SearchThenAnswer()
+print(app("Who inherited Kinnairdy Castle?").answer)
+```
+
+Modules are composable and return typed `Prediction` objects. ([DSPy][5])
+
+---
+
+## Evaluation & Metrics
+
+Evaluate systematically before/after optimization.
+
+```python
+from dspy.evaluate import Evaluate
+from dspy.metrics import answer_exact_match, SemanticF1
+
+def metric(example, pred) -> float:
+    # choose a metric appropriate to your task
+    return answer_exact_match(example.answer, pred.answer)
+
+evaluator = Evaluate(devset=my_examples, metric=metric)
+score = evaluator(app)  # higher is better
+print(score)
+```
+
+DSPy provides `Evaluate` plus metrics like `answer_exact_match` and `SemanticF1`. ([DSPy][4])
+
+---
+
+## Optimization (formerly “Teleprompters”)
+
+**Optimizers** tune your program’s prompts and/or model weights from a small train/dev set:
+
+* Few-shot: `LabeledFewShot`, `BootstrapFewShot`, `KNNFewShot`
+* Instruction: `MIPROv2`, `COPRO`, `GEPA`, `SIMBA`
+* Finetuning: `BootstrapFinetune`
+* Ensembles & program transforms: `Ensemble`, `BetterTogether` ([DSPy][10])
+
+```python
+from dspy.teleprompt import MIPROv2
+
+optimizer = MIPROv2(metric=metric, max_bootstrapped_demos=40)
+optimized_program = optimizer.compile(app, trainset=train_examples)
+
+print(optimized_program("…").answer)
+optimized_program.save("search_then_answer.optimized.json")
+```
+
+Optimizers accept your **program**, **metric**, and a few **train inputs** (5–10 often works). You can save/load optimized programs. ([DSPy][10])
+
+> **New in 3.0:** RL (**GRPO** via Arbor), upgraded **MIPROv2**, reflective **GEPA**, and feedback-driven **SIMBA**. ([GitHub][3])
+
+---
+
+## Retrieval-Augmented Generation (RAG)
+
+Build RAG with a retriever (e.g., **ColBERTv2**) plus a reasoning module.
+
+```python
+def retrieve(query: str) -> list[str]:
+    return [x["text"] for x in dspy.ColBERTv2(url="http://20.102.90.50:2017/wiki17_abstracts")(query, k=3)]
+
+rag = dspy.ChainOfThought("context: list[str], question -> answer")
+question = "What's the name of the castle that David Gregory inherited?"
+pred = rag(context=retrieve(question), question=question)
+print(pred.answer)
+```
+
+Module-level RAG example (with ColBERTv2) and full RAG tutorial are available. ([DSPy][5])
+
+---
+
+## Agents with Tools (ReAct)
+
+Use tools (Python, search, APIs) inside a **ReAct** loop:
+
+```python
+def evaluate_math(expr: str) -> float:
+    return dspy.PythonInterpreter({}).execute(expr)
+
+def search_wikipedia(query: str) -> list[str]:
+    return [x["text"] for x in dspy.ColBERTv2(url="http://20.102.90.50:2017/wiki17_abstracts")(query, k=3)]
+
+agent = dspy.ReAct("question -> answer: float", tools=[evaluate_math, search_wikipedia])
+print(agent(question="What is 9362158 divided by David Gregory's birth year?").answer)
+```
+
+See tutorials on **Agents** and **Multi-Hop Retrieval** for larger, optimized agentic systems. ([DSPy][5])
+
+---
+
+## Streaming, Async & Concurrency
+
+**Streaming**: stream tokens or status messages from any layer (adapter, module). (See Adapters and Streaming guides.) ([DSPy][9])
+
+**Async**: wrap any program to call it concurrently:
+
+```python
+from dspy.utils import asyncify
+async_app = asyncify(app)
+# await async_app(question="…")
+```
+
+The async wrapper propagates your current DSPy settings (lm, adapter, etc.). ([DSPy][11])
+
+---
+
+## Caching & Cost Control
+
+DSPy uses a **3-layer cache** (memory, disk, and provider-side prompt cache). Control globally or per-LM:
+
+```python
+import dspy, os
+
+# Disable caches globally
+dspy.configure_cache(enable_disk_cache=False, enable_memory_cache=False)
+
+# Or tweak policy/limits
+dspy.configure_cache(disk_cache_dir=os.path.join(os.getcwd(), "cache"), memory_max_entries=250_000)
+
+# Per-LM: disable cache for a model
+nocache = dspy.LM("openai/gpt-4o-mini", cache=False)
+dspy.configure(lm=nocache)
+```
+
+See the **Cache** tutorial (`configure_cache`) and FAQ for toggling/exporting caches. ([DSPy][12])
+
+---
+
+## Saving, Loading & Deployment
+
+**Save/Load full program** (architecture + state):
+
+```python
+optimized_program.save("my_program.pkl")         # or .json (state-only via .save(save_program=False))
+loaded = dspy.load("my_program.pkl")
+print(loaded("…"))
+```
+
+* `dspy.load(path)` loads a program saved with `save_program=True`.
+* `Module.load(path)` loads **state** into an existing module. ([DSPy][13])
+
+Production deployment guidance (packaging, environments, endpoints) is covered in the **Deployment** docs. ([DSPy][14])
+
+---
+
+## Observability & MLflow
+
+Track runs, traces, and optimizer training with **MLflow**:
+
+```python
+import dspy
+# Configure LM and (optionally) MLflow tracking via env vars or mlflow.start_run(...)
+# Then run programs/optimizers as usual; DSPy emits rich traces.
+```
+
+DSPy 3.0 integrates with **MLflow 3.0** for tracing and optimizer tracking; see **Tracking DSPy Optimizers**. ([DSPy][15])
+
+---
+
+## Best Practices & Gotchas
+
+* **Start with a clear Signature**; keep field names semantically meaningful (e.g., `question` vs `answer`). ([DSPy][8])
+* Prefer **typed outputs** (e.g., `list[Item]`, Pydantic models) with `JSONAdapter` when you need strict structure. ([DSPy][9])
+* Use **ChainOfThought** or **ProgramOfThought** for complex reasoning; use **MultiChainComparison**/**BestOfN** to compare/vote. ([DSPy][5])
+* **Evaluate** first; **optimize** with MIPROv2/GEPA/SIMBA; consider **BootstrapFinetune** when you have more data. ([DSPy][10])
+* Control **caching** carefully (global + per-LM) for reproducibility, cost, and speed; use `rollout_id` when sampling variants. ([DSPy][16])
+* **Save** your optimized programs and version them; load with `dspy.load()` in prod. ([DSPy][13])
+
+---
+
+## Cheatsheet & Further Reading
+
+* **Cheatsheet** (quick snippets, cache config, module tips). ([DSPy][17])
+* **Learning DSPy** (overview of stages & curriculum). ([DSPy][18])
+* **Language Models** (all providers, OpenAI-compatible endpoints). ([DSPy][4])
+* **Signatures / Modules / Adapters** (core programming docs). ([DSPy][8])
+* **Optimizers** (MIPROv2, GEPA, SIMBA, etc.). ([DSPy][10])
+* **RAG** tutorial & **Agents** tutorial. ([DSPy][19])
+* **Saving & Loading** and **Deployment** guides. ([DSPy][20])
+
+---
+
+*This guide tracks **DSPy 3.0.x** (current: 3.0.3). For release notes and 3.0 upgrades, see GitHub Releases.* ([PyPI][1])
+
+[1]: https://pypi.org/project/dspy/ "dspy · PyPI"
+[2]: https://medium.com/%40anyuanay/building-an-llm-based-research-assistant-agent-using-dspy-8435ae35ae15?utm_source=chatgpt.com "Building an LLM-Based Research Assistant Agent Using ..."
+[3]: https://github.com/stanfordnlp/dspy/releases "Releases · stanfordnlp/dspy · GitHub"
+[4]: https://dspy.ai/learn/programming/language_models/ "Language Models - DSPy"
+[5]: https://dspy.ai/learn/programming/modules/ "Modules - DSPy"
+[6]: https://dspy.ai/learn/programming/language_models/?utm_source=chatgpt.com "Language Models"
+[7]: https://dspy.ai/api/models/LM/?utm_source=chatgpt.com "dspy.LM"
+[8]: https://dspy.ai/learn/programming/signatures/ "Signatures - DSPy"
+[9]: https://dspy.ai/learn/programming/adapters/ "Adapters - DSPy"
+[10]: https://dspy.ai/learn/optimization/optimizers/ "Optimizers - DSPy"
+[11]: https://dspy.ai/api/utils/asyncify/?utm_source=chatgpt.com "asyncify"
+[12]: https://dspy.ai/tutorials/cache/?utm_source=chatgpt.com "Cache"
+[13]: https://dspy.ai/api/utils/load/?utm_source=chatgpt.com "load"
+[14]: https://dspy.ai/tutorials/deployment/ "Deployment - DSPy"
+[15]: https://dspy.ai/tutorials/optimizer_tracking/ "Tracking DSPy Optimizers - DSPy"
+[16]: https://dspy.ai/api/utils/configure_cache/?utm_source=chatgpt.com "configure_cache"
+[17]: https://dspy.ai/cheatsheet/?utm_source=chatgpt.com "DSPy Cheatsheet"
+[18]: https://dspy.ai/learn/?utm_source=chatgpt.com "Learning DSPy"
+[19]: https://dspy.ai/tutorials/rag/?utm_source=chatgpt.com "Tutorial: Retrieval-Augmented Generation (RAG)"
+[20]: https://dspy.ai/tutorials/saving/?utm_source=chatgpt.com "Saving and Loading"

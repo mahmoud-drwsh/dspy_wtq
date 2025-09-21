@@ -2,7 +2,7 @@
 """
 Example: iterate WTQ test questions with their tables.
 
-This uses utils.wtq.load_wtq_test_questions_with_tables to load ready-to-use
+This uses utils.splits_loader.load_wtq_test_questions_with_tables to load ready-to-use
 examples. It prints a short summary plus a small peek at each example's table.
 
 Run:

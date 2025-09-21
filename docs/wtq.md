@@ -1,155 +1,142 @@
-Here’s a compact, academic take on WTQ—and then a dead-simple DSPy+Python walkthrough you can run.
+# WikiTableQuestions (WTQ) — Complete Report (Latest Version)
 
-# What is WTQ?
+## Overview
 
-**WikiTableQuestions (WTQ)** is a benchmark for *semantic parsing and question answering over semi-structured tables*. Each example pairs a natural-language question with a single HTML/TSV table from Wikipedia; the system must compute the correct denotation (answer) by inducing a latent program (logical form) that operates over the table. The original release contains **≈22k question–answer pairs across ≈2.1k Wikipedia tables**, with test tables disjoint from training tables to stress compositional generalization to unseen schemas. ([arXiv][1])
+WikiTableQuestions (WTQ) is a benchmark for answering natural-language questions over semi-structured Wikipedia tables. The dataset spans **\~2.1k tables** and **\~22k questions**, with test tables disjoint from training tables to stress generalization. ([Stanford NLP][1])
 
-### Why it’s academically interesting
+## Version & Provenance (Latest)
 
-* **Weak supervision:** Only answers (denotations) are provided; logical forms are not. Models must search over programs consistent with the answer, e.g., with dynamic programming on denotations. ([arXiv][1])
-* **Compositionality:** Questions require multi-step operations—row/column selection, filters, superlatives (argmax/argmin), aggregation (count/sum), arithmetic, and date/ordinal reasoning—rather than single-cell lookup. ([Panupong Pasupat][2])
-* **Evaluation:** Accuracy is computed by *denotation exact match* against gold answer(s); generalization is measured on unseen tables. ([Stanford NLP][3])
+* **Canonical latest release:** **v1.0.2** (Oct 4, 2016; latest GitHub release tagged Feb 16, 2017). Curated by Panupong Pasupat & Percy Liang. **License:** CC BY-SA 4.0. ([GitHub][2])
+* **Hugging Face dataset:** `stanfordnlp/wikitablequestions`, mirrors WTQ with a convenient processing script and split mapping; license noted as **Creative Commons Attribution Share Alike 4.0 International**. ([Hugging Face][3])
 
-### Practical dataset shape (HF Datasets)
+## Task & Evaluation
 
-Using the Hugging Face loader, each record includes:
+* **Task:** Given a question and a table, predict the **denotation** (answer string/set) from the table. ([Stanford NLP][1])
+* **Primary metric:** **Denotation Accuracy (DA)**—prediction is correct if the set of predicted values equals the gold set (order-invariant). This is the de-facto WTQ metric used in recent work. ([ACL Anthology][4])
+* **Official evaluator:** `evaluator.py` (provided by WTQ maintainers). It expects a `.tagged` dataset file and a predictions file (one line per example). Note: SEMPRE’s evaluator additionally enforces type constraints, so scores can differ slightly.
 
-* `question: str`
-* `answers: List[str]`
-* `table: { header: List[str], rows: List[List[str]], name: str }`
-  Splits are provided for train/validation/test (default config `random-split-1`). ([Hugging Face][4])
+  * Usage (from README): `evaluator.py <tagged_dataset_path> <prediction_path>`. ([GitHub][2])
+
+## Splits & Sizes
+
+**Canonical WTQ (v1.0.2):** 22,033 total examples
+
+* `training`: **14,152**
+* `pristine-unseen-tables` (**test**): **4,344** (tables unseen in training)
+* `pristine-seen-tables`: **3,537** (not commonly used for official evaluation) ([GitHub][2])
+
+**Hugging Face processed splits (derived from canonical):**
+
+* `train`: **11,321**
+* `validation`: **2,831**
+* `test` (maps to `pristine-unseen-tables`): **4,344** ([Hugging Face][3])
+
+> **Note:** The HF `train+validation` (**11,321 + 2,831 = 14,152**) together reproduce the canonical `training` portion; `test` corresponds to the official `pristine-unseen-tables`. ([Hugging Face][3])
+
+## Data Structure
+
+### Processed schema (Hugging Face)
+
+Each example is a JSON with:
+
+```json
+{
+  "id": "string",
+  "question": "string",
+  "answers": ["string", "..."],
+  "table": {
+    "header": ["string", "..."],
+    "rows": [["string", "..."], ["..."]],
+    "name": "csv/<subdir>/<file>.csv"
+  }
+}
+```
+
+Fields and an example instance are shown on the dataset card. ([Hugging Face][3])
+
+### Raw WTQ files (canonical repo)
+
+* **Questions & answers (TSV) in `data/`**
+
+  * Fields per line: `id`, `utterance` (question), `context` (table id), `targetValue` (answer; `|`-separated if multiple).
+  * Multiple split files provided (e.g., `training.tsv`, `pristine-unseen-tables.tsv`). ([GitHub][2])
+* **Tables & webpages**
+
+  * `csv/…/*.csv|*.tsv|*.html`: extracted tables (CSV/TSV plus a table-only HTML).
+  * `page/…/*.html|*.json`: raw page HTML and metadata (URL, page title, chosen table index). ([GitHub][2])
+* **CoreNLP “tagged” annotations**
+
+  * **Question-level** (`tagged/data/*.tagged`): tokens, lemmas, POS, NER, normalized numeric/date spans, canonical target type (`number|date|string|mixed`).
+  * **Cell-level** (`tagged/*-tagged/*.tagged`): for each table cell—row/col indices, token/lemma/POS/NER; optional **number**, **date**, **num2** (e.g., “1-2”), **list**. ([GitHub][2])
+* **TSV conventions**: special escaping (e.g., `|` → `\p`, newline → `\n`) and whitespace normalization to ease parsing. ([GitHub][2])
+
+## Example (from HF card)
+
+A typical validation example:
+
+```json
+{
+  "id": "nt-0",
+  "question": "what was the last year where this team was a part of the usl a-league?",
+  "answers": ["2004"],
+  "table": {
+    "header": ["Year", "Division", "League", "..."],
+    "name": "csv/204-csv/590.csv",
+    "rows": [
+      ["2001", "2", "USL A-League", "..."],
+      ["2002", "2", "USL A-League", "..."]
+    ]
+  }
+}
+```
+
+(Structure and fields as documented on HF.) ([Hugging Face][3])
+
+## Access & Loading
+
+* **Hugging Face Datasets:** `load_dataset("stanfordnlp/wikitablequestions")` (provides `train`, `validation`, `test` with the schema above). See the dataset card for specifics and models fine-tuned on WTQ (e.g., TAPAS/TAPEX checkpoints). ([Hugging Face][3])
+* **Canonical GitHub:** contains raw TSV/CSV/HTML plus evaluator and tagged artifacts; use when you need exact v1.0.2 files or the official evaluator. ([GitHub][2])
+
+## Evaluation Protocol (Recommended)
+
+1. Use the **`test`** split as defined above (`pristine-unseen-tables`). ([GitHub][2])
+2. Report **Denotation Accuracy** with the **official `evaluator.py`** (note that SEMPRE’s evaluator may enforce type matching). ([GitHub][2])
+
+## Best-Scoring Papers on WTQ (Last 5 Years)
+
+> Sorted roughly by **test** performance on the standard WTQ test set; all within Sep-2020 → Sep-2025.
+
+* **BINDER (ICLR 2023)** — *Training-free neural-symbolic with Codex*: **64.6** (test), **65.0** (dev). The paper also reports **OmniTab (2022) 63.3**, **TaCube (2022) 61.3**, **TAPEX (2021) 59.1**, **T5-3B/UnifiedSKG (2022) 50.6/51.9** for reference. *(Authors evaluate with an execution-aware variant and re-evaluate baselines consistently.)*&#x20;
+* **Readi (Findings of ACL 2024)** — *LLM planning + editing for TableQA*: **61.7 (GPT-3.5)** and **61.3 (GPT-4)** denotation accuracy on WTQ, outperforming prior inference-based methods and competitive with trained models.&#x20;
+* **OmniTab (EMNLP 2022)** — *Pretraining with natural & synthetic data*: **63.3** (test) as reported in BINDER’s consolidated table.&#x20;
+* **TaCube (EMNLP 2022)** — *Pre-computed numerical “data cubes” for reasoning*: **61.3** (test) (paper also cites \~59.6/61+ in variants).&#x20;
+* **TAPEX (NeurIPS 2021)** — *SQL-executor-style pretraining*: **59.1** (test) on WTQ (and widely used as a strong baseline in subsequent work).&#x20;
+
+> **Metric note:** WTQ results are reported as **Denotation/Execution Accuracy** on the official test set; some papers apply lightweight normalization to align semantic correctness (e.g., yes/no mapping) but re-score all baselines with the same evaluator for fairness. When comparing across works, prefer tables that aggregate under a uniform evaluator (as above).&#x20;
+
+## Known Caveats & Tips
+
+* **Generalization:** Test tables are **unseen** during training; avoid table leakage in preprocessing or retrieval components. ([Stanford NLP][1])
+* **Typing & normalization:** Minor formatting (dates, currencies, booleans) can affect DA; consider type-aware post-processing or the WTQ/SEMPRE evaluator if appropriate. ([GitHub][2])
+* **Answer sets:** DA ignores ordering for multi-item answers—ensure your evaluator and prediction format list all items on one line per example. ([ACL Anthology][4])
+
+## References & Resources
+
+* **Dataset card (HF):** schema, splits, license; links to models. ([Hugging Face][3])
+* **Canonical WTQ repo:** v1.0.2, file layout, “tagged” annotations, evaluator. ([GitHub][2])
+* **Stanford overview post:** counts and task description. ([Stanford NLP][1])
+* **Representative recent papers with strong WTQ results:**
+
+  * **BINDER (ICLR 2023)**: consolidated dev/test table including 64.6 (test).&#x20;
+  * **Readi (Findings of ACL 2024)**: 61.7/61.3 DA on WTQ.&#x20;
+  * **TaCube (EMNLP 2022)**: pre-computation for numerical reasoning. ([ACL Anthology][5])
 
 ---
 
-# Minimal “Hello WTQ” in Python with **DSPy**
+*This report reflects the WTQ **latest canonical release (v1.0.2)** and contemporary results as of **September 20, 2025**.* ([GitHub][2])
 
-Below is a tiny, end-to-end program that:
-
-1. loads WTQ from 🤗 Datasets,
-2. serializes tables into a compact text block,
-3. defines a DSPy module (`Predict` / CoT) to answer questions from the table, and
-4. optionally uses **BootstrapFewShot** to auto-compose a few-shot prompt from a handful of labeled examples.
-
-> This is deliberately simple to illustrate DSPy plumbing. It relies on an LLM reading the serialized table text; it is **not** a semantic parser and won’t match SOTA. (For stronger baselines, see TAPAS models fine-tuned on WTQ.) ([DSPy][5])
-
-## 0) Install & set up
-
-```bash
-pip install dspy-ai datasets
-# choose an LM backend; examples:
-# - OpenAI-compatible:
-#   pip install openai
-# - Hugging Face Inference API client:
-#   pip install huggingface_hub
-```
-
-## 1) Code (single file)
-
-```python
-import dspy
-from datasets import load_dataset
-import re
-
-# ---------- Configure an LM for DSPy ----------
-# Option A: OpenAI-compatible endpoint (replace with your model + key)
-# import os; os.environ["OPENAI_API_KEY"] = "sk-..."
-# dspy.settings.configure(lm=dspy.OpenAI(model="gpt-4o-mini"))  # or any compatible model
-
-# Option B: Hugging Face Inference API (server-hosted)
-# from huggingface_hub import InferenceClient
-# dspy.settings.configure(lm=dspy.HFClient("mistralai/Mixtral-8x7B-Instruct"))  # requires HF token in env
-
-# ---------- Load a small slice of WTQ ----------
-ds = load_dataset("stanfordnlp/wikitablequestions")  # default: random-split-1
-train = ds["train"]
-val = ds["validation"]
-
-def serialize_table(tbl, max_rows=12, max_cols=6):
-    header = tbl["header"][:max_cols]
-    rows = [r[:max_cols] for r in tbl["rows"][:max_rows]]
-    lines = [" | ".join(header)]
-    lines.append("-" * min(80, 3 * len(" | ".join(header))))
-    for r in rows:
-        lines.append(" | ".join(r))
-    return "\n".join(lines)
-
-# ---------- Define a DSPy signature & module ----------
-class WTQAnswer(dspy.Signature):
-    """Answer a question using only the given table."""
-    question: str = dspy.InputField()
-    table: str = dspy.InputField()
-    rationale: str = dspy.OutputField(desc="brief chain-of-thought over the table")
-    answer: str = dspy.OutputField(desc="final answer string found in/derived from the table")
-
-class WTQProgram(dspy.Module):
-    def __init__(self):
-        super().__init__()
-        self.predict = dspy.ChainOfThought(WTQAnswer)  # or dspy.Predict(WTQAnswer) for no rationale
-
-    def forward(self, question: str, table: dict):
-        table_txt = serialize_table(table)
-        pred = self.predict(question=question, table=table_txt)
-        # Post-process very lightly (strip punctuation, collapse spaces)
-        ans = re.sub(r"\s+", " ", pred.answer).strip()
-        return dspy.Prediction(rationale=pred.rationale, answer=ans)
-
-prog = WTQProgram()
-
-# ---------- Tiny training set for BootstrapFewShot (optional) ----------
-def normalize(s):
-    return re.sub(r"\s+", " ", s).strip().lower()
-
-def exact_match(gold_list, pred):
-    return any(normalize(g) == normalize(pred) for g in gold_list)
-
-train_examples = []
-for ex in train.select(range(12)):  # 12 supervised demos
-    train_examples.append(
-        dspy.Example(
-            question=ex["question"],
-            table=serialize_table(ex["table"]),
-            answer=ex["answers"][0] if ex["answers"] else ""
-        ).with_inputs("question", "table")
-    )
-
-# Use DSPy's few-shot teleprompter to compile the program with demos
-from dspy.optimizers import BootstrapFewShot
-teleprompter = BootstrapFewShot(metric=lambda gold, pred: exact_match([gold], pred))
-compiled = teleprompter.compile(
-    prog,
-    trainset=train_examples,
-)
-
-# ---------- Quick evaluation on a tiny validation slice ----------
-n, correct = 20, 0
-subset = val.select(range(n))
-for ex in subset:
-    out = compiled(question=ex["question"], table=ex["table"])
-    correct += int(exact_match(ex["answers"], out.answer))
-
-print(f"Accuracy on {n} val examples: {correct/n:.2%}")
-
-# ---------- Try an interactive example ----------
-i = 0
-ex = val[i]
-out = compiled(question=ex["question"], table=ex["table"])
-print("\nQ:", ex["question"])
-print("\nTABLE:\n", serialize_table(ex["table"], max_rows=8))
-print("\nMODEL:", out.answer, "\nGOLD:", ex["answers"])
-print("\nRATIONALE:\n", out.rationale)
-```
-
-## 2) Notes & tips
-
-* **Dataset fields:** The HF loader gives you the *full table content* (`header`, `rows`), so you don’t need to fetch tables separately. ([Hugging Face][4])
-* **Prompt length:** Tables can be large. Start with `max_rows/cols` caps (as above). For better scaling, consider retrieval over columns/rows or learned table selectors.
-* **Metrics:** WTQ evaluation is denotation-based. Even simple **exact match** with light normalization is a good first check.
-* **Going beyond this toy:** For stronger results, move toward *neuro-symbolic* execution or specialized table models (e.g., TAPAS fine-tuned on WTQ) and integrate them as DSPy modules. ([Hugging Face][6])
-* **DSPy docs:** `Predict` and `BootstrapFewShot` APIs are here if you want to customize signatures, add callbacks, or swap optimizers. ([DSPy][5])
-
-[1]: https://arxiv.org/pdf/1508.00305?utm_source=chatgpt.com "arXiv:1508.00305v1 [cs.CL] 3 Aug 2015"
-[2]: https://ppasupat.github.io/WikiTableQuestions/?utm_source=chatgpt.com "Compositional Semantic Parsing on Semi-Structured Tables"
-[3]: https://nlp.stanford.edu/blog/wikitablequestions-a-complex-real-world-question-understanding-dataset/?utm_source=chatgpt.com "a Complex Real-World Question Understanding Dataset"
-[4]: https://huggingface.co/datasets/stanfordnlp/wikitablequestions/blame/main/wikitablequestions.py "wikitablequestions.py · stanfordnlp/wikitablequestions at main"
-[5]: https://dspy.ai/api/modules/Predict/?utm_source=chatgpt.com "Predict"
-[6]: https://huggingface.co/google/tapas-medium-finetuned-wtq?utm_source=chatgpt.com "google/tapas-medium-finetuned-wtq"
+[1]: https://nlp.stanford.edu/blog/wikitablequestions-a-complex-real-world-question-understanding-dataset/?utm_source=chatgpt.com "a Complex Real-World Question Understanding Dataset"
+[2]: https://github.com/ppasupat/WikiTableQuestions "GitHub - ppasupat/WikiTableQuestions: A dataset of complex questions on semi-structured Wikipedia tables"
+[3]: https://huggingface.co/datasets/stanfordnlp/wikitablequestions "stanfordnlp/wikitablequestions · Datasets at Hugging Face"
+[4]: https://aclanthology.org/2025.findings-acl.121.pdf?utm_source=chatgpt.com "Structural Deep Encoding for Table Question Answering"
+[5]: https://aclanthology.org/2022.emnlp-main.145/?utm_source=chatgpt.com "TaCube: Pre-computing Data Cubes for Answering ..."
