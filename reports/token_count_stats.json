@@ -1,0 +1,94 @@
+{
+  "train": {
+    "simple_tokens": {
+      "min": 34,
+      "max": 6374,
+      "mean": 303.98,
+      "median": 171.0,
+      "std": 475.65
+    },
+    "tiktoken_estimates": {
+      "min": 46,
+      "max": 9099,
+      "mean": 426.47,
+      "median": 234.0,
+      "std": 699.41
+    },
+    "sentencepiece_estimates": {
+      "min": 58,
+      "max": 11452,
+      "mean": 542.71,
+      "median": 293.0,
+      "std": 900.56
+    }
+  },
+  "validation": {
+    "simple_tokens": {
+      "min": 34,
+      "max": 5648,
+      "mean": 298.25,
+      "median": 170,
+      "std": 464.29
+    },
+    "tiktoken_estimates": {
+      "min": 46,
+      "max": 8242,
+      "mean": 420.3,
+      "median": 235,
+      "std": 703.82
+    },
+    "sentencepiece_estimates": {
+      "min": 58,
+      "max": 10739,
+      "mean": 534.5,
+      "median": 292,
+      "std": 909.71
+    }
+  },
+  "test": {
+    "simple_tokens": {
+      "min": 44,
+      "max": 5675,
+      "mean": 310.74,
+      "median": 169.0,
+      "std": 496.18
+    },
+    "tiktoken_estimates": {
+      "min": 53,
+      "max": 7315,
+      "mean": 424.03,
+      "median": 234.0,
+      "std": 674.07
+    },
+    "sentencepiece_estimates": {
+      "min": 63,
+      "max": 9420,
+      "mean": 539.2,
+      "median": 299.0,
+      "std": 870.18
+    }
+  },
+  "overall": {
+    "simple_tokens": {
+      "min": 34,
+      "max": 6374,
+      "mean": 304.4,
+      "median": 170,
+      "std": 477.97
+    },
+    "tiktoken_estimates": {
+      "min": 46,
+      "max": 9099,
+      "mean": 425.0,
+      "median": 234,
+      "std": 695.17
+    },
+    "sentencepiece_estimates": {
+      "min": 58,
+      "max": 11452,
+      "mean": 540.7,
+      "median": 294,
+      "std": 896.1
+    }
+  }
+}

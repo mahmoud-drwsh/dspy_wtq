@@ -1,0 +1,546 @@
+{
+  "train": {
+    "questions": {
+      "count": 14152,
+      "length_stats": {
+        "words": {
+          "min": 1,
+          "max": 61,
+          "mean": 9.98,
+          "median": 9.0,
+          "std": 3.4
+        },
+        "characters": {
+          "min": 7,
+          "max": 352,
+          "mean": 54.9,
+          "median": 52.0,
+          "std": 19.46
+        }
+      },
+      "top_question_starters": {
+        "what": 3906,
+        "how": 3724,
+        "which": 2526,
+        "who": 1178,
+        "in": 320,
+        "the": 248,
+        "name": 226,
+        "did": 191,
+        "when": 125,
+        "was": 117
+      }
+    },
+    "answers": {
+      "total_answers": 15278,
+      "unique_answers": 6868,
+      "answers_per_question": {
+        "min": 1,
+        "max": 56,
+        "mean": 1.08,
+        "median": 1.0,
+        "std": 0.84
+      },
+      "answer_length_stats": {
+        "words": {
+          "min": 1,
+          "max": 36,
+          "mean": 1.6,
+          "median": 1.0,
+          "std": 1.19
+        },
+        "characters": {
+          "min": 1,
+          "max": 228,
+          "mean": 8.03,
+          "median": 5.0,
+          "std": 8.83
+        }
+      },
+      "answer_types": {
+        "numeric": 6730,
+        "date_like": 616,
+        "other": 7932
+      }
+    },
+    "tables": {
+      "count": 14152,
+      "dimensions": {
+        "rows": {
+          "min": 4,
+          "max": 753,
+          "mean": 25.38,
+          "median": 14.0,
+          "std": 40.06
+        },
+        "columns": {
+          "min": 3,
+          "max": 25,
+          "mean": 6.37,
+          "median": 6.0,
+          "std": 2.03
+        }
+      },
+      "size_stats": {
+        "total_cells": {
+          "min": 20,
+          "max": 3832,
+          "mean": 162.31,
+          "median": 90.0,
+          "std": 255.48
+        }
+      },
+      "cell_analysis": {
+        "total_cells": 2387076,
+        "empty_cells": 118910,
+        "empty_percentage": 4.98,
+        "cell_length_stats": {
+          "words": {
+            "min": 1,
+            "max": 360,
+            "mean": 1.9,
+            "median": 1.0,
+            "std": 3.0
+          },
+          "characters": {
+            "min": 1,
+            "max": 2009,
+            "mean": 10.66,
+            "median": 7.0,
+            "std": 19.87
+          }
+        }
+      },
+      "header_analysis": {
+        "header_length_stats": {
+          "words": {
+            "min": 0,
+            "max": 15,
+            "mean": 1.32,
+            "median": 1,
+            "std": 0.74
+          }
+        }
+      }
+    },
+    "topics": {
+      "total_tables": 14152,
+      "unique_table_files": 1679,
+      "top_topics": {
+        "204-csv": 7749,
+        "203-csv": 5892,
+        "202-csv": 255,
+        "201-csv": 167,
+        "200-csv": 89
+      }
+    }
+  },
+  "validation": {
+    "questions": {
+      "count": 3537,
+      "length_stats": {
+        "words": {
+          "min": 3,
+          "max": 61,
+          "mean": 10.01,
+          "median": 10,
+          "std": 3.58
+        },
+        "characters": {
+          "min": 14,
+          "max": 350,
+          "mean": 55.02,
+          "median": 52,
+          "std": 20.39
+        }
+      },
+      "top_question_starters": {
+        "what": 1027,
+        "how": 907,
+        "which": 596,
+        "who": 297,
+        "in": 75,
+        "the": 68,
+        "name": 57,
+        "did": 45,
+        "when": 31,
+        "was": 22
+      }
+    },
+    "answers": {
+      "total_answers": 3826,
+      "unique_answers": 2126,
+      "answers_per_question": {
+        "min": 1,
+        "max": 27,
+        "mean": 1.08,
+        "median": 1,
+        "std": 0.71
+      },
+      "answer_length_stats": {
+        "words": {
+          "min": 1,
+          "max": 14,
+          "mean": 1.62,
+          "median": 1.0,
+          "std": 1.13
+        },
+        "characters": {
+          "min": 1,
+          "max": 88,
+          "mean": 8.22,
+          "median": 5.0,
+          "std": 8.62
+        }
+      },
+      "answer_types": {
+        "numeric": 1685,
+        "date_like": 172,
+        "other": 1969
+      }
+    },
+    "tables": {
+      "count": 3537,
+      "dimensions": {
+        "rows": {
+          "min": 4,
+          "max": 753,
+          "mean": 25.23,
+          "median": 15,
+          "std": 42.72
+        },
+        "columns": {
+          "min": 3,
+          "max": 25,
+          "mean": 6.38,
+          "median": 6,
+          "std": 2.0
+        }
+      },
+      "size_stats": {
+        "total_cells": {
+          "min": 20,
+          "max": 3832,
+          "mean": 160.49,
+          "median": 90,
+          "std": 262.96
+        }
+      },
+      "cell_analysis": {
+        "total_cells": 590212,
+        "empty_cells": 30224,
+        "empty_percentage": 5.12,
+        "cell_length_stats": {
+          "words": {
+            "min": 1,
+            "max": 243,
+            "mean": 1.88,
+            "median": 1.0,
+            "std": 3.03
+          },
+          "characters": {
+            "min": 1,
+            "max": 1721,
+            "mean": 10.61,
+            "median": 7.0,
+            "std": 20.18
+          }
+        }
+      },
+      "header_analysis": {
+        "header_length_stats": {
+          "words": {
+            "min": 0,
+            "max": 15,
+            "mean": 1.35,
+            "median": 1.0,
+            "std": 0.79
+          }
+        }
+      }
+    },
+    "topics": {
+      "total_tables": 3537,
+      "unique_table_files": 1455,
+      "top_topics": {
+        "204-csv": 1889,
+        "203-csv": 1494,
+        "202-csv": 81,
+        "201-csv": 50,
+        "200-csv": 23
+      }
+    }
+  },
+  "test": {
+    "questions": {
+      "count": 4344,
+      "length_stats": {
+        "words": {
+          "min": 3,
+          "max": 32,
+          "mean": 9.88,
+          "median": 9.0,
+          "std": 3.19
+        },
+        "characters": {
+          "min": 16,
+          "max": 158,
+          "mean": 54.12,
+          "median": 51.0,
+          "std": 17.89
+        }
+      },
+      "top_question_starters": {
+        "how": 1198,
+        "what": 1157,
+        "which": 684,
+        "who": 429,
+        "in": 108,
+        "the": 67,
+        "name": 57,
+        "did": 48,
+        "when": 46,
+        "is": 37
+      }
+    },
+    "answers": {
+      "total_answers": 4638,
+      "unique_answers": 2130,
+      "answers_per_question": {
+        "min": 1,
+        "max": 27,
+        "mean": 1.07,
+        "median": 1.0,
+        "std": 0.64
+      },
+      "answer_length_stats": {
+        "words": {
+          "min": 1,
+          "max": 24,
+          "mean": 1.57,
+          "median": 1.0,
+          "std": 1.06
+        },
+        "characters": {
+          "min": 1,
+          "max": 150,
+          "mean": 7.7,
+          "median": 5.0,
+          "std": 8.34
+        }
+      },
+      "answer_types": {
+        "numeric": 2173,
+        "date_like": 188,
+        "other": 2277
+      }
+    },
+    "tables": {
+      "count": 4344,
+      "dimensions": {
+        "rows": {
+          "min": 5,
+          "max": 517,
+          "mean": 25.4,
+          "median": 15.0,
+          "std": 43.8
+        },
+        "columns": {
+          "min": 3,
+          "max": 21,
+          "mean": 6.29,
+          "median": 6.0,
+          "std": 1.84
+        }
+      },
+      "size_stats": {
+        "total_cells": {
+          "min": 20,
+          "max": 2585,
+          "mean": 158.14,
+          "median": 90.0,
+          "std": 252.8
+        }
+      },
+      "cell_analysis": {
+        "total_cells": 714322,
+        "empty_cells": 43293,
+        "empty_percentage": 6.06,
+        "cell_length_stats": {
+          "words": {
+            "min": 1,
+            "max": 218,
+            "mean": 2.01,
+            "median": 1,
+            "std": 4.18
+          },
+          "characters": {
+            "min": 1,
+            "max": 1196,
+            "mean": 11.11,
+            "median": 7,
+            "std": 25.07
+          }
+        }
+      },
+      "header_analysis": {
+        "header_length_stats": {
+          "words": {
+            "min": 0,
+            "max": 8,
+            "mean": 1.31,
+            "median": 1.0,
+            "std": 0.69
+          }
+        }
+      }
+    },
+    "topics": {
+      "total_tables": 4344,
+      "unique_table_files": 421,
+      "top_topics": {
+        "203-csv": 2090,
+        "204-csv": 2070,
+        "202-csv": 99,
+        "200-csv": 50,
+        "201-csv": 35
+      }
+    }
+  },
+  "overall": {
+    "questions": {
+      "count": 22033,
+      "length_stats": {
+        "words": {
+          "min": 1,
+          "max": 61,
+          "mean": 9.97,
+          "median": 9,
+          "std": 3.39
+        },
+        "characters": {
+          "min": 7,
+          "max": 352,
+          "mean": 54.77,
+          "median": 52,
+          "std": 19.32
+        }
+      },
+      "top_question_starters": {
+        "what": 6090,
+        "how": 5829,
+        "which": 3806,
+        "who": 1904,
+        "in": 503,
+        "the": 383,
+        "name": 340,
+        "did": 284,
+        "when": 202,
+        "was": 170
+      }
+    },
+    "answers": {
+      "total_answers": 23742,
+      "unique_answers": 9886,
+      "answers_per_question": {
+        "min": 1,
+        "max": 56,
+        "mean": 1.08,
+        "median": 1,
+        "std": 0.79
+      },
+      "answer_length_stats": {
+        "words": {
+          "min": 1,
+          "max": 36,
+          "mean": 1.6,
+          "median": 1.0,
+          "std": 1.15
+        },
+        "characters": {
+          "min": 1,
+          "max": 228,
+          "mean": 7.99,
+          "median": 5.0,
+          "std": 8.71
+        }
+      },
+      "answer_types": {
+        "numeric": 10588,
+        "date_like": 976,
+        "other": 12178
+      }
+    },
+    "tables": {
+      "count": 22033,
+      "dimensions": {
+        "rows": {
+          "min": 4,
+          "max": 753,
+          "mean": 25.36,
+          "median": 15,
+          "std": 41.25
+        },
+        "columns": {
+          "min": 3,
+          "max": 25,
+          "mean": 6.35,
+          "median": 6,
+          "std": 1.99
+        }
+      },
+      "size_stats": {
+        "total_cells": {
+          "min": 20,
+          "max": 3832,
+          "mean": 161.2,
+          "median": 90,
+          "std": 256.16
+        }
+      },
+      "cell_analysis": {
+        "total_cells": 3691610,
+        "empty_cells": 192427,
+        "empty_percentage": 5.21,
+        "cell_length_stats": {
+          "words": {
+            "min": 1,
+            "max": 360,
+            "mean": 1.92,
+            "median": 1,
+            "std": 3.27
+          },
+          "characters": {
+            "min": 1,
+            "max": 2009,
+            "mean": 10.74,
+            "median": 7,
+            "std": 21.02
+          }
+        }
+      },
+      "header_analysis": {
+        "header_length_stats": {
+          "words": {
+            "min": 0,
+            "max": 15,
+            "mean": 1.32,
+            "median": 1,
+            "std": 0.74
+          }
+        }
+      }
+    },
+    "topics": {
+      "total_tables": 22033,
+      "unique_table_files": 2108,
+      "top_topics": {
+        "204-csv": 11708,
+        "203-csv": 9476,
+        "202-csv": 435,
+        "201-csv": 252,
+        "200-csv": 162
+      }
+    }
+  }
+}

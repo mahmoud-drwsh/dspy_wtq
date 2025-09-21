@@ -1,0 +1,66 @@
+{
+  "train": {
+    "table_word_counts": {
+      "min": 34,
+      "max": 6374,
+      "mean": 303.98,
+      "median": 171.0,
+      "std": 475.65
+    },
+    "table_char_counts": {
+      "min": 120,
+      "max": 40732,
+      "mean": 1708.04,
+      "median": 891.0,
+      "std": 2935.29
+    }
+  },
+  "validation": {
+    "table_word_counts": {
+      "min": 34,
+      "max": 5648,
+      "mean": 298.25,
+      "median": 170,
+      "std": 464.29
+    },
+    "table_char_counts": {
+      "min": 120,
+      "max": 37046,
+      "mean": 1679.4,
+      "median": 890,
+      "std": 2936.12
+    }
+  },
+  "test": {
+    "table_word_counts": {
+      "min": 44,
+      "max": 5675,
+      "mean": 310.74,
+      "median": 169.0,
+      "std": 496.18
+    },
+    "table_char_counts": {
+      "min": 135,
+      "max": 33675,
+      "mean": 1715.42,
+      "median": 926.0,
+      "std": 2955.56
+    }
+  },
+  "overall": {
+    "table_word_counts": {
+      "min": 34,
+      "max": 6374,
+      "mean": 304.4,
+      "median": 170,
+      "std": 477.97
+    },
+    "table_char_counts": {
+      "min": 120,
+      "max": 40732,
+      "mean": 1704.9,
+      "median": 894,
+      "std": 2939.32
+    }
+  }
+}
