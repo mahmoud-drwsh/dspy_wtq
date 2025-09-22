@@ -39,6 +39,16 @@ def is_answer_correct(predicted, expected_answers):
     # Normalize predicted answer
     pred_norm = normalize_answer(predicted)
     
+    # Handle "I don't know" responses
+    if "i don't know" in pred_norm or "don't know" in pred_norm:
+        # Check if any expected answer is also "I don't know" or similar
+        for expected in expected_answers:
+            exp_norm = normalize_answer(expected)
+            if "i don't know" in exp_norm or "don't know" in exp_norm or "unknown" in exp_norm:
+                return True
+        # If expected answers are not "I don't know", then "I don't know" is incorrect
+        return False
+    
     # Check against each expected answer
     for expected in expected_answers:
         exp_norm = normalize_answer(expected)
@@ -63,14 +73,21 @@ def is_answer_correct(predicted, expected_answers):
 # ============================================================================
 
 class TableQuestionAnswering(dspy.Signature):
-    """Answer questions about tabular data using the provided table context and available tools."""
+    """Answer questions about tabular data using the provided table context and available tools.
+    
+    Answer Format Instructions:
+    - Give a concise, direct answer (e.g., "Italy", "17", "January 26, 1995")
+    - If the answer is not found in the table, respond with "I don't know"
+    - Do not provide explanations, reasoning, or verbose descriptions
+    - Do not say "The question cannot be answered" - use "I don't know" instead
+    """
     
     question: str = dspy.InputField(desc="The question to answer about the table data")
     table_headers: str = dspy.InputField(desc="List of column headers in the table")
     total_columns: int = dspy.InputField(desc="Total number of columns in the table")
     total_rows: int = dspy.InputField(desc="Total number of data rows in the table")
     sample_rows: str = dspy.InputField(desc="First few rows of the table data to understand the data format and values")
-    answer: str = dspy.OutputField(desc="The final answer to the question based on the table data")
+    answer: str = dspy.OutputField(desc="Concise answer to the question. Use 'I don't know' if answer not found in table.")
 
 
 # ============================================================================
@@ -89,11 +106,13 @@ def set_current_table(table_data: str) -> str:
     """Set the current table data for analysis."""
     global current_table_data
     current_table_data = table_data
+    print(f"🔧 set_current_table called with {len(table_data.split(chr(10)))} lines")
     return f"Table loaded with {len(table_data.split(chr(10)))} lines"
 
 def get_table_headers() -> str:
     """Get the column headers from the current table."""
     global current_table_data
+    print("🔧 get_table_headers called")
     if current_table_data is None:
         return "Error: No table data available. This should not happen."
     
@@ -116,6 +135,7 @@ def count_column_values_tool(column_name: str, condition_value: str) -> str:
         str: Description of the count result
     """
     global current_table_data
+    print(f"🔧 count_column_values_tool called: column='{column_name}', value='{condition_value}'")
     if current_table_data is None:
         return "Error: No table data available. This should not happen."
     
@@ -156,6 +176,7 @@ def count_column_contains_tool(column_name: str, search_value: str) -> str:
         str: Description of the count result
     """
     global current_table_data
+    print(f"🔧 count_column_contains_tool called: column='{column_name}', search='{search_value}'")
     if current_table_data is None:
         return "Error: No table data available. This should not happen."
     
@@ -198,6 +219,7 @@ def get_row_by_condition_tool(column_name: str, condition_value: str, match_type
         str: The complete row data or error message
     """
     global current_table_data
+    print(f"🔧 get_row_by_condition_tool called: column='{column_name}', value='{condition_value}', match_type='{match_type}'")
     if current_table_data is None:
         return "Error: No table data available. This should not happen."
     
@@ -254,6 +276,7 @@ def get_sample_rows(num_rows: int = 3) -> str:
         str: First N rows of the table data
     """
     global current_table_data
+    print(f"🔧 get_sample_rows called: num_rows={num_rows}")
     if current_table_data is None:
         return "Error: No table data available. This should not happen."
     
@@ -269,6 +292,7 @@ def get_sample_rows(num_rows: int = 3) -> str:
 def get_table_headers_list() -> list:
     """Get list of table headers."""
     global current_table_data
+    print("🔧 get_table_headers_list called")
     if current_table_data is None:
         return []
     
@@ -281,6 +305,7 @@ def get_table_headers_list() -> list:
 def get_table_row_count() -> int:
     """Get total number of data rows."""
     global current_table_data
+    print("🔧 get_table_row_count called")
     if current_table_data is None:
         return 0
     
@@ -352,6 +377,94 @@ def save_run_results(config, results, accuracy, total_questions, correct_count, 
     if not is_incremental:
         print(f"📁 Results saved to: {filename}")
     return filename, run_timestamp
+
+def save_reasoning_analysis(results, run_timestamp=None):
+    """Save detailed reasoning trajectory and tool selection analysis to a separate JSON file."""
+    
+    # Create results directory if it doesn't exist
+    results_dir = "run_results"
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+    
+    # Use provided timestamp or generate new one
+    if run_timestamp is None:
+        run_timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    filename = f"{results_dir}/reasoning_analysis_{run_timestamp}.json"
+    
+    # Extract all reasoning trajectories and tool selections
+    all_reasoning = []
+    all_tool_selections = []
+    tool_usage_stats = {}
+    
+    for i, result in enumerate(results, 1):
+        question_id = i
+        
+        # Process reasoning trajectory
+        for reasoning_step in result.get('reasoning_trajectory', []):
+            all_reasoning.append({
+                'question_id': question_id,
+                'question': result['question'],
+                'step': reasoning_step['step'],
+                'reasoning': reasoning_step['reasoning'],
+                'correct': result['correct']
+            })
+        
+        # Process tool selections
+        for tool_step in result.get('tool_selections', []):
+            all_tool_selections.append({
+                'question_id': question_id,
+                'question': result['question'],
+                'step': tool_step['step'],
+                'tool_name': tool_step['tool_name'],
+                'tool_input': tool_step['tool_input'],
+                'tool_output': tool_step['tool_output'],
+                'correct': result['correct']
+            })
+            
+            # Track tool usage statistics
+            tool_name = tool_step['tool_name']
+            if tool_name not in tool_usage_stats:
+                tool_usage_stats[tool_name] = {
+                    'total_uses': 0,
+                    'correct_questions': 0,
+                    'incorrect_questions': 0,
+                    'questions_used': set()
+                }
+            
+            tool_usage_stats[tool_name]['total_uses'] += 1
+            tool_usage_stats[tool_name]['questions_used'].add(question_id)
+            if result['correct']:
+                tool_usage_stats[tool_name]['correct_questions'] += 1
+            else:
+                tool_usage_stats[tool_name]['incorrect_questions'] += 1
+    
+    # Convert sets to counts for JSON serialization
+    for tool_name, stats in tool_usage_stats.items():
+        stats['unique_questions'] = len(stats['questions_used'])
+        del stats['questions_used']  # Remove set for JSON serialization
+    
+    # Prepare the analysis data
+    analysis_data = {
+        "timestamp": run_timestamp,
+        "datetime": datetime.datetime.now().isoformat(),
+        "summary": {
+            "total_questions": len(results),
+            "total_reasoning_steps": len(all_reasoning),
+            "total_tool_calls": len(all_tool_selections),
+            "unique_tools_used": len(tool_usage_stats)
+        },
+        "tool_usage_statistics": tool_usage_stats,
+        "reasoning_trajectory": all_reasoning,
+        "tool_selections": all_tool_selections
+    }
+    
+    # Save to JSON file
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(analysis_data, f, indent=2, ensure_ascii=False)
+    
+    print(f"🧠 Reasoning analysis saved to: {filename}")
+    return filename
 
 # ============================================================================
 # MAIN EXECUTION
@@ -492,13 +605,104 @@ def main():
         print(f"Status: {status}")
         print(f"Tool calls: {len(result.trajectory) if hasattr(result, 'trajectory') else 0}")
         
+        # Extract reasoning trajectory and tool selection data
+        reasoning_trajectory = []
+        tool_selections = []
+        
+        if hasattr(result, 'trajectory') and result.trajectory:
+            trajectory = result.trajectory
+            
+            # Handle dictionary-based trajectory (DSPy ReAct format)
+            if isinstance(trajectory, dict):
+                # Find all step numbers by looking for thought_* keys
+                step_numbers = set()
+                for key in trajectory.keys():
+                    if key.startswith('thought_'):
+                        step_num = key.split('_')[1]
+                        step_numbers.add(step_num)
+                
+                # Process each step
+                for step_num in sorted(step_numbers, key=int):
+                    thought_key = f'thought_{step_num}'
+                    tool_name_key = f'tool_name_{step_num}'
+                    tool_args_key = f'tool_args_{step_num}'
+                    observation_key = f'observation_{step_num}'
+                    
+                    # Extract reasoning/thought
+                    if thought_key in trajectory and trajectory[thought_key]:
+                        reasoning_trajectory.append({
+                            'step': int(step_num) + 1,
+                            'reasoning': trajectory[thought_key],
+                            'type': 'reasoning'
+                        })
+                    
+                    # Extract tool call
+                    if tool_name_key in trajectory and trajectory[tool_name_key]:
+                        tool_selections.append({
+                            'step': int(step_num) + 1,
+                            'tool_name': trajectory[tool_name_key],
+                            'tool_input': trajectory.get(tool_args_key, {}),
+                            'tool_output': trajectory.get(observation_key, ''),
+                            'type': 'tool_selection'
+                        })
+            
+            # Handle list-based trajectory (alternative format)
+            elif isinstance(trajectory, list):
+                for i, step in enumerate(trajectory):
+                    # Try different possible attribute names for reasoning/thoughts
+                    reasoning_text = None
+                    if hasattr(step, 'thought') and step.thought:
+                        reasoning_text = step.thought
+                    elif hasattr(step, 'reasoning') and step.reasoning:
+                        reasoning_text = step.reasoning
+                    elif hasattr(step, 'rationale') and step.rationale:
+                        reasoning_text = step.rationale
+                    elif hasattr(step, 'reason') and step.reason:
+                        reasoning_text = step.reason
+                    
+                    if reasoning_text:
+                        reasoning_trajectory.append({
+                            'step': i + 1,
+                            'reasoning': reasoning_text,
+                            'type': 'reasoning'
+                        })
+                    
+                    # Try different possible attribute names for tool calls
+                    tool_name = None
+                    tool_input = None
+                    tool_output = None
+                    
+                    if hasattr(step, 'action') and step.action:
+                        tool_name = step.action
+                        tool_input = getattr(step, 'action_input', '')
+                        tool_output = getattr(step, 'observation', '')
+                    elif hasattr(step, 'tool') and step.tool:
+                        tool_name = step.tool
+                        tool_input = getattr(step, 'tool_input', '')
+                        tool_output = getattr(step, 'tool_output', '')
+                    elif hasattr(step, 'function') and step.function:
+                        tool_name = step.function
+                        tool_input = getattr(step, 'function_input', '')
+                        tool_output = getattr(step, 'function_output', '')
+                    
+                    if tool_name:
+                        tool_selections.append({
+                            'step': i + 1,
+                            'tool_name': tool_name,
+                            'tool_input': tool_input,
+                            'tool_output': tool_output,
+                            'type': 'tool_selection'
+                        })
+        
         # Store result for summary
         result_data = {
             'question': question,
             'expected': expected_answers,
             'predicted': predicted_answer,
             'correct': is_correct,
-            'tool_calls': len(result.trajectory) if hasattr(result, 'trajectory') else 0
+            'tool_calls': len(result.trajectory) if hasattr(result, 'trajectory') else 0,
+            'reasoning_trajectory': reasoning_trajectory,
+            'tool_selections': tool_selections
         }
         results.append(result_data)
         
@@ -536,6 +740,12 @@ def main():
     print("💾 SAVING FINAL RESULTS")
     print(f"{'='*80}")
     saved_file, _ = save_run_results(config, results, accuracy, len(examples), correct_count, is_incremental=False, run_timestamp=run_timestamp)
+    
+    # 6.5) Save detailed reasoning analysis
+    print(f"\n{'='*80}")
+    print("🧠 SAVING REASONING ANALYSIS")
+    print(f"{'='*80}")
+    reasoning_file = save_reasoning_analysis(results, run_timestamp)
     
     # 7) Token usage statistics (from last result)
     if results:

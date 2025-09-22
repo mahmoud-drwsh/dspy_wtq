@@ -1,6 +1,6 @@
 {
   "timestamp": "20250922_072943",
-  "datetime": "2025-09-22T07:31:56.141200",
+  "datetime": "2025-09-22T07:34:01.546384",
   "config": {
     "model": "openai/qwen/qwen3-4b-2507",
     "api_base": "http://10.1.11.218:1234/v1",
@@ -31,10 +31,10 @@
     "max_table_rows": 500
   },
   "summary": {
-    "total_questions": 22,
-    "correct_count": 14,
-    "accuracy": 63.63636363636363,
-    "accuracy_percentage": "63.6%",
+    "total_questions": 40,
+    "correct_count": 20,
+    "accuracy": 50.0,
+    "accuracy_percentage": "50.0%",
     "is_incremental": true
   },
   "detailed_results": [
@@ -236,6 +236,172 @@
       ],
       "predicted": "Brazil",
       "correct": true,
+      "tool_calls": 12
+    },
+    {
+      "question": "total wins by belgian riders",
+      "expected": [
+        "7"
+      ],
+      "predicted": "7",
+      "correct": true,
+      "tool_calls": 20
+    },
+    {
+      "question": "what yacht had the next best time (smaller time is better) than ausmaid?",
+      "expected": [
+        "Brindabella"
+      ],
+      "predicted": "Sayonara",
+      "correct": false,
+      "tool_calls": 12
+    },
+    {
+      "question": "what match comes after gl-b-5?",
+      "expected": [
+        "GL-B-6"
+      ],
+      "predicted": "GL-B-6",
+      "correct": true,
+      "tool_calls": 12
+    },
+    {
+      "question": "how many times was amanda on the judging panel?",
+      "expected": [
+        "3"
+      ],
+      "predicted": "8",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "how many awards has leona lewis won?",
+      "expected": [
+        "20"
+      ],
+      "predicted": "1",
+      "correct": false,
+      "tool_calls": 20
+    },
+    {
+      "question": "who was the top scorer in the last season?",
+      "expected": [
+        "Simon Makienok Christoffersen"
+      ],
+      "predicted": "Claus Nielsen",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "how many jury members were there?",
+      "expected": [
+        "9"
+      ],
+      "predicted": "The table does not contain any information about jury members, so the number of jury members cannot be determined from the given data.",
+      "correct": false,
+      "tool_calls": 4
+    },
+    {
+      "question": "how many times was the val d'lsere, france location used?",
+      "expected": [
+        "1"
+      ],
+      "predicted": "The location \"Val d'lsere, France\" was not mentioned in the table, and there is no data available to determine how many times it was used.",
+      "correct": false,
+      "tool_calls": 4
+    },
+    {
+      "question": "what is the name listed before mount pleasant line?",
+      "expected": [
+        "Pennsylvania Avenue Metro Extra Line"
+      ],
+      "predicted": "SKIPPED (table too large)",
+      "correct": false,
+      "tool_calls": 0
+    },
+    {
+      "question": "what is the last stadium listed on this chart?",
+      "expected": [
+        "DW Stadium"
+      ],
+      "predicted": "Kingston Communications Stadium",
+      "correct": false,
+      "tool_calls": 12
+    },
+    {
+      "question": "how many times did salvatore bettiol win first place across competitions?",
+      "expected": [
+        "2"
+      ],
+      "predicted": "0",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "which year did illinois not have any losses during the conference?",
+      "expected": [
+        "1914-15"
+      ],
+      "predicted": "1914–15",
+      "correct": true,
+      "tool_calls": 12
+    },
+    {
+      "question": "natalia varnakova is the same height as which other contestant(s)?",
+      "expected": [
+        "Jahaira Novgorodova",
+        "Carmen Jenockova",
+        "Mariesea Mnesiču",
+        "Patricia Valiahmetova",
+        "Anastasija Larkova"
+      ],
+      "predicted": "No other contestant has the same height as Natalia Varnakova.",
+      "correct": false,
+      "tool_calls": 12
+    },
+    {
+      "question": "how many candidates belong to a party other than republican or democrat?",
+      "expected": [
+        "0"
+      ],
+      "predicted": "0",
+      "correct": true,
+      "tool_calls": 20
+    },
+    {
+      "question": "how many competitions were not in the united kingdom?",
+      "expected": [
+        "4"
+      ],
+      "predicted": "4",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "how many domestic routes out of houston intercontinental have united as a carrier?",
+      "expected": [
+        "10"
+      ],
+      "predicted": "0",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "in total, how many germans are listed?",
+      "expected": [
+        "2"
+      ],
+      "predicted": "2",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "in what year are there the first results for giant slalom?",
+      "expected": [
+        "2005"
+      ],
+      "predicted": "2008",
+      "correct": false,
       "tool_calls": 12
     }
   ]

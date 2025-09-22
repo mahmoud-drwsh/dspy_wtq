@@ -1,12 +1,12 @@
 {
-  "timestamp": "20250922_072342",
-  "datetime": "2025-09-22T07:24:19.483580",
+  "timestamp": "20250922_073420",
+  "datetime": "2025-09-22T07:34:45.787319",
   "config": {
-    "model": "openai/ibm/granite-3.1-8b",
+    "model": "openai/qwen/qwen3-4b-2507",
     "api_base": "http://10.1.11.218:1234/v1",
     "api_key": "local",
     "model_type": "chat",
-    "temperature": 0.2,
+    "temperature": 0.0,
     "max_tokens": 16384,
     "track_usage": true,
     "disk_cache": false,
@@ -14,7 +14,8 @@
     "max_iters": 5,
     "tools": [
       "count_column_values_tool",
-      "count_column_contains_tool"
+      "count_column_contains_tool",
+      "get_row_by_condition_tool"
     ],
     "signature_fields": [
       "question",
@@ -31,9 +32,9 @@
   },
   "summary": {
     "total_questions": 3,
-    "correct_count": 0,
-    "accuracy": 0.0,
-    "accuracy_percentage": "0.0%",
+    "correct_count": 2,
+    "accuracy": 66.66666666666666,
+    "accuracy_percentage": "66.7%",
     "is_incremental": true
   },
   "detailed_results": [
@@ -42,27 +43,33 @@
       "expected": [
         "Italy"
       ],
-      "predicted": "Based on the provided table data, no country had more than one cyclist finish within the top 10.",
-      "correct": false,
-      "tool_calls": 20
+      "predicted": "Italy",
+      "correct": true,
+      "tool_calls": 20,
+      "reasoning_trajectory": [],
+      "tool_selections": []
     },
     {
       "question": "how many people were murdered in 1940/41?",
       "expected": [
         "100,000"
       ],
-      "predicted": "100,000 people were murdered in 1940/41.",
-      "correct": false,
-      "tool_calls": 20
+      "predicted": "100000",
+      "correct": true,
+      "tool_calls": 8,
+      "reasoning_trajectory": [],
+      "tool_selections": []
     },
     {
       "question": "how long did it take for the new york americans to win the national cup after 1936?",
       "expected": [
         "17 years"
       ],
-      "predicted": "The New York Americans did not win the National Cup after 1936, as there is no record of them in the provided table data for that time frame.",
+      "predicted": "The question cannot be answered with the given data.",
       "correct": false,
-      "tool_calls": 12
+      "tool_calls": 4,
+      "reasoning_trajectory": [],
+      "tool_selections": []
     }
   ]
 }
