@@ -90,6 +90,53 @@ def print_token_usage(result):
         print(f"Usage tracking error: {e}")
 
 
+def configure_dspy_lm_studio(
+    model: str = "openai/qwen/qwen3-4b-2507",
+    api_base: str = "http://10.1.11.218:1234/v1",
+    api_key: str = "local",
+    model_type: str = "chat",
+    temperature: float = 0.0,
+    max_tokens: int = 16384,
+    track_usage: bool = True,
+    disk_cache: bool = False,
+    memory_cache: bool = False,
+):
+    """
+    Configure DSPy with LM Studio model settings.
+    
+    Args:
+        model: The model name/path in LM Studio
+        api_base: LM Studio API base URL
+        api_key: API key (usually "local" for LM Studio)
+        model_type: Model type (usually "chat")
+        temperature: Sampling temperature
+        max_tokens: Maximum tokens for generation
+        track_usage: Whether to track token usage
+        disk_cache: Enable disk caching
+        memory_cache: Enable memory caching
+    
+    Returns:
+        The configured language model
+    """
+    # Configure the language model
+    lm = dspy.LM(
+        model,
+        api_base=api_base,
+        api_key=api_key,
+        model_type=model_type,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+    dspy.configure(lm=lm)
+
+    # Configure usage tracking and cache
+    dspy.settings.configure(track_usage=track_usage)
+    dspy.configure_cache(enable_disk_cache=disk_cache, enable_memory_cache=memory_cache)
+
+    print(f"✅ DSPy configured with LM Studio model: {model} at {api_base}")
+    return lm
+
+
 def build_module(dspy, use_cot: bool = True):
     """Build a DSPy module (ChainOfThought or Predict)."""
     signature = "table_text, question -> answer"
