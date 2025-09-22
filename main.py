@@ -493,7 +493,8 @@ def main():
         "evaluation_method": "simplified_normalization",
         "sample_rows_count": 5,
         "max_table_size": 10000,
-        "max_table_rows": 500
+        "max_table_rows": 500,
+        "test_questions_limit": 500
     }
     
     lm = dspy.LM(
@@ -523,7 +524,7 @@ def main():
 
     # 2) Load WTQ test examples
     print("📊 Loading WTQ test examples...")
-    examples = load_wtq_test_questions_with_tables(limit=50)
+    examples = load_wtq_test_questions_with_tables(limit=config["test_questions_limit"])
     print(f"Loaded {len(examples)} examples")
 
     # 3) Create a React agent with table tools
@@ -532,7 +533,7 @@ def main():
 
     # 4) Test with multiple questions
     print(f"\n{'='*80}")
-    print("🧪 TESTING 50 WTQ QUESTIONS")
+    print(f"🧪 TESTING {config['test_questions_limit']} WTQ QUESTIONS")
     print(f"{'='*80}")
     
     # Generate a single timestamp for this entire run
