@@ -4,38 +4,6 @@
 - Configure: Edit `config.json` to customize model, data paths, and other settings
 - Run main: `uv run main.py`
 
-## Configuration
-
-All settings are now managed through `config.json` instead of command-line arguments:
-
-- **Model settings**: model name, API base URL, temperature, max tokens
-- **Program settings**: use Chain of Thought, disable caching
-- **Data settings**: data directory, row/column limits
-- **Output settings**: output directory
-- **Repro settings**: random seed
-
-Example configuration:
-```json
-{
-  "model": {
-    "name": "gemma3:4b",
-    "api_base": "http://localhost:11434",
-    "temperature": 0.1,
-    "max_tokens": 512
-  },
-  "program": {
-    "use_cot": true,
-    "disable_cache": false
-  },
-  "data": {
-    "data_dir": null,
-    "test_limit": 200,
-    "row_limit": 30,
-    "col_limit": 10
-  }
-}
-```
-
 ## WTQ Dataset Setup / Preview
 
 - Quick preview: `uv run setup/extract_wtq_test_data.py`

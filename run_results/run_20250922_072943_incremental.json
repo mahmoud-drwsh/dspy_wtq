@@ -1,0 +1,242 @@
+{
+  "timestamp": "20250922_072943",
+  "datetime": "2025-09-22T07:31:56.141200",
+  "config": {
+    "model": "openai/qwen/qwen3-4b-2507",
+    "api_base": "http://10.1.11.218:1234/v1",
+    "api_key": "local",
+    "model_type": "chat",
+    "temperature": 0.0,
+    "max_tokens": 16384,
+    "track_usage": true,
+    "disk_cache": false,
+    "memory_cache": false,
+    "max_iters": 5,
+    "tools": [
+      "count_column_values_tool",
+      "count_column_contains_tool",
+      "get_row_by_condition_tool"
+    ],
+    "signature_fields": [
+      "question",
+      "table_headers",
+      "total_columns",
+      "total_rows",
+      "sample_rows",
+      "answer"
+    ],
+    "evaluation_method": "simplified_normalization",
+    "sample_rows_count": 5,
+    "max_table_size": 10000,
+    "max_table_rows": 500
+  },
+  "summary": {
+    "total_questions": 22,
+    "correct_count": 14,
+    "accuracy": 63.63636363636363,
+    "accuracy_percentage": "63.6%",
+    "is_incremental": true
+  },
+  "detailed_results": [
+    {
+      "question": "which country had the most cyclists finish within the top 10?",
+      "expected": [
+        "Italy"
+      ],
+      "predicted": "Italy",
+      "correct": true,
+      "tool_calls": 20
+    },
+    {
+      "question": "how many people were murdered in 1940/41?",
+      "expected": [
+        "100,000"
+      ],
+      "predicted": "100000",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "how long did it take for the new york americans to win the national cup after 1936?",
+      "expected": [
+        "17 years"
+      ],
+      "predicted": "The question cannot be answered with the given data.",
+      "correct": false,
+      "tool_calls": 4
+    },
+    {
+      "question": "alfie's birthday party aired on january 19. what was the airdate of the next episode?",
+      "expected": [
+        "January 26, 1995"
+      ],
+      "predicted": "The next episode after Alfie's birthday party does not exist in the provided data, as no episode aired after January 19, 1995.",
+      "correct": false,
+      "tool_calls": 20
+    },
+    {
+      "question": "what is the number of 1st place finishes across all events?",
+      "expected": [
+        "17"
+      ],
+      "predicted": "17",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "in which competition did hopley finish fist?",
+      "expected": [
+        "World Junior Championships"
+      ],
+      "predicted": "World Junior Championships",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "what is the total number of films with the language of kannada listed?",
+      "expected": [
+        "15"
+      ],
+      "predicted": "15",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "what was the number of people attending the toros mexico vs. monterrey flash game?",
+      "expected": [
+        "363"
+      ],
+      "predicted": "363",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "what time period had no shirt sponsor?",
+      "expected": [
+        "1982-1985"
+      ],
+      "predicted": "All time periods listed in the table (1977–1978, 1982–1985, 1985–1986, 1986–1988, 1988–1989, and others) had no shirt sponsor.",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "when was his first 1st place record?",
+      "expected": [
+        "2000"
+      ],
+      "predicted": "2000",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "in which three consecutive years was the record the same?",
+      "expected": [
+        "2004",
+        "2005",
+        "2006"
+      ],
+      "predicted": "There are no three consecutive years where the record was the same.",
+      "correct": false,
+      "tool_calls": 20
+    },
+    {
+      "question": "does pat or john have the highest total?",
+      "expected": [
+        "John"
+      ],
+      "predicted": "Neither Pat nor John is in the table, so their totals cannot be compared.",
+      "correct": false,
+      "tool_calls": 12
+    },
+    {
+      "question": "what is the combined score of year end rankings before 2009?",
+      "expected": [
+        "440"
+      ],
+      "predicted": "13–17",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "how many more ships were wrecked in lake huron than in erie?",
+      "expected": [
+        "7"
+      ],
+      "predicted": "7",
+      "correct": true,
+      "tool_calls": 12
+    },
+    {
+      "question": "what is the only character with a blank c string?",
+      "expected": [
+        "space"
+      ],
+      "predicted": "space",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "what was the total number of points scored by the tide in the last 3 games combined.",
+      "expected": [
+        "68"
+      ],
+      "predicted": "62",
+      "correct": false,
+      "tool_calls": 16
+    },
+    {
+      "question": "who came immediately after sebastian porto in the race?",
+      "expected": [
+        "Tomomi Manako"
+      ],
+      "predicted": "Tomomi Manako",
+      "correct": true,
+      "tool_calls": 12
+    },
+    {
+      "question": "what's the total number of festivals that occurred in october?",
+      "expected": [
+        "5"
+      ],
+      "predicted": "5",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "what is the only hospital to have 6 hospital beds?",
+      "expected": [
+        "Vidant Bertie Hospital"
+      ],
+      "predicted": "Vidant Bertie Hospital",
+      "correct": true,
+      "tool_calls": 8
+    },
+    {
+      "question": "what is the total number of skoda cars sold in the year 2005?",
+      "expected": [
+        "492,111"
+      ],
+      "predicted": "0",
+      "correct": false,
+      "tool_calls": 8
+    },
+    {
+      "question": "what was the number of times won on grass?",
+      "expected": [
+        "1"
+      ],
+      "predicted": "1",
+      "correct": true,
+      "tool_calls": 12
+    },
+    {
+      "question": "who won the most gold medals?",
+      "expected": [
+        "Brazil"
+      ],
+      "predicted": "Brazil",
+      "correct": true,
+      "tool_calls": 12
+    }
+  ]
+}

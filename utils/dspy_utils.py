@@ -42,48 +42,6 @@ def configure_dspy(
     dspy.configure(lm=lm)
     return dspy
 
-
-def configure_dspy_lm_studio(
-    model_name: str = "deepseek/deepseek-r1-0528-qwen3-8b",
-    api_base: str = "http://localhost:1234/v1",
-    api_key: str = "local",
-    temperature: float = 0.1,
-    max_tokens: int = 1024,
-    track_usage: bool = False,
-):
-    """
-    Configure DSPy with LM Studio model settings.
-    
-    Args:
-        model_name: The model to use (default: DeepSeek R1)
-        api_base: LM Studio API base URL (default: localhost:1234)
-        api_key: API key for authentication (default: "local")
-        temperature: Sampling temperature
-        max_tokens: Maximum tokens for generation
-        track_usage: Whether to track token usage (can cause errors)
-    
-    Returns:
-        The configured language model
-    """
-    # Configure the language model
-    lm = dspy.LM(
-        model_name,
-        api_base=api_base,
-        api_key=api_key,
-        model_type="chat",
-        temperature=temperature,
-        max_tokens=max_tokens
-    )
-    dspy.configure(lm=lm)
-    
-    # Configure usage tracking and cache
-    dspy.settings.configure(track_usage=track_usage)
-    dspy.configure_cache(enable_disk_cache=False, enable_memory_cache=False)
-    
-    print(f"✅ DSPy configured with LM Studio model: {model_name} at {api_base}")
-    return lm
-
-
 def configure_dspy_openrouter(
     model_name: str = "openrouter/deepseek/deepseek-r1-0528-qwen3-8b",
     max_tokens: int = 1024,
